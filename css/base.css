@@ -3,7 +3,9 @@
     margin: 20px auto;
 }
 
-.row {
+p {
+    color: #fff;
+    text-align: center;
 }
 
 .item {

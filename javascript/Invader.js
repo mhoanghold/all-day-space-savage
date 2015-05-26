@@ -7,7 +7,7 @@ function Invader() {
 
 Invader.prototype = {
   columns: 30,
-  rows: 30,
+  rows: 20,
   score: 0,
   kills: 0,
   points_per_hit: 20,

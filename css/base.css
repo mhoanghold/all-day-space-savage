@@ -1,0 +1,51 @@
+.game-container {
+    width: 372px;
+    margin: 20px auto;
+}
+
+.row {
+}
+
+.item {
+    width: 12px;
+    text-align: center;
+    float: left;
+}
+
+.item {
+    color: #fff;
+}
+
+.friendly {
+    color: #00ff00;
+    transform:rotate(-180deg);
+}
+
+.ship {
+    color: #00ff00;
+}
+
+.stats {
+    color: #fff;
+}
+
+.enemy {
+    color: #ff0000;
+}
+
+body {
+    background-color: #000;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+.clearfix { display: inline-block; }
+* html .clearfix { height: 1%; }
+.clearfix { display: block; }

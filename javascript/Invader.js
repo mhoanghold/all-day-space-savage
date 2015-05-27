@@ -1,4 +1,5 @@
 function Invader() {
+    this.$container = this.findByClassName('js-game-container');
     this.$ammo_container = this.findByClassName('js-ammo-container');
     this.$ship_container = this.findByClassName('js-ship-container');
     this.$enemy_container = this.findByClassName('js-enemy-container');
@@ -6,10 +7,18 @@ function Invader() {
 }
 
 Invader.prototype = {
+    $container: null,
+    $ammo_container: null,
+    $ship_container: null,
+    $enemy_container: null,
+    $stats_container: null,
+    $pyramid_outer: null,
+    $enemy_pyramid_outer: null,
     columns: 30,
     rows: 20,
     score: 0,
     kills: 0,
+    current_level: 1,
     points_per_hit: 20,
     lives: 3,
     ship_max_lives: 3,
@@ -33,9 +42,11 @@ Invader.prototype = {
     go_left: 65,
     fire_ammo: 32,
     ammo_coordinates: {},
+    enemy_ammo_coordinates: {},
     ammo_interval_time: 100,
     enemy_fire_interval_time: 1500,
     audio_buffers: {},
+    audio_contexts: {},
     sounds: {
         0: 'https://s3.amazonaws.com/all-day/INVADER-LV1.mp3',
         1: 'https://s3.amazonaws.com/all-day/INVADER-LV2.mp3',
@@ -56,6 +67,8 @@ Invader.prototype = {
     game_sounds: {},
     game_sound_counts: {},
     game_audio_context: null,
+    ammo_id: 0,
+    disable_game_board: false,
 
     init: function () {
         this.buildAmmoGrid();
@@ -118,8 +131,16 @@ Invader.prototype = {
     observeSound: function () {
         var self = this;
         this.sound_interval_object = setInterval(function () {
-            console.log(self.audio_buffers)
             if (self.change_sound) {
+                self.current_level += 1;
+                if (self.current_level == 3 && self.$pyramid_outer == null && self.$enemy_pyramid_outer == null) {
+                    self.buildFriendlyPyramid();
+                    self.buildEnemyPyramid();
+                    self.moveEnemyPyramid();
+                    self.movePyramid();
+                }
+                var level_class = self.current_level >= 3 ? 3 : self.current_level;
+                self.$container.className = 'js-game-container game-container level-' + level_class;
                 self.loadPlaySound(self.next_sound);
                 self.change_sound = false;
             }
@@ -157,8 +178,9 @@ Invader.prototype = {
         if (this.current_sound) {
             this.current_sound.sound_source.stop();
         }
-        this.audio_buffers[name].sound_source.start(0);
-        this.current_sound = this.audio_buffers[name];
+        this.audio_contexts[name] = this.createAudioContext(this.audio_buffers[name], false);
+        this.audio_contexts[name].sound_source.start(0);
+        this.current_sound = this.audio_contexts[name];
     },
 
     loadSound: function(name, play) {
@@ -169,7 +191,7 @@ Invader.prototype = {
 
         request.onload = function () {
             self.audio_context.decodeAudioData(request.response, function (buffer) {
-                self.audio_buffers[name] = self.createAudioContext(buffer, false);
+                self.audio_buffers[name] = buffer;
                 if (play) {
                     if (self.current_sound) {
                         self.current_sound.sound_source.stop();
@@ -199,10 +221,14 @@ Invader.prototype = {
 
     updateAmmoGrid: function () {
         var self = this;
+        if (this.disable_game_board) {
+            return;
+        }
         setInterval(function () {
             self.moveEnemy();
             self.buildEnemy();
-            self.updateAmmoCoordinates();
+            self.updateAmmoCoordinates(true);
+            self.updateAmmoCoordinates(false);
             self.buildAmmoGrid();
             self.buildShip();
             self.updateStats();
@@ -216,8 +242,14 @@ Invader.prototype = {
             this.enemy_x -= Math.floor(Math.random() * 6) + 1;
         }
 
-        if (this.enemy_x > this.columns - this.ship_width + 1) {
-            this.enemy_x = this.columns - this.ship_width + 1;
+
+        var enemy_max = this.columns - this.ship_width;
+        if (this.current_level == 2) {
+            enemy_max -= 1;
+        }
+
+        if (this.enemy_x > enemy_max) {
+            this.enemy_x = enemy_max;
             this.enemy_direction = -1;
         }
 
@@ -225,13 +257,15 @@ Invader.prototype = {
             this.enemy_x = 0;
             this.enemy_direction = 1;
         }
+
+        this.moveEnemyPyramid();
     },
 
-    updateAmmoCoordinates: function () {
-        var coords, valid, friendly, coordinates = {};
-        for (var prop in this.ammo_coordinates) {
+    updateAmmoCoordinates: function (friendly) {
+        var coords, valid, coordinates = {}, ammo_id, coords_type = friendly ? 'ammo_coordinates' : 'enemy_ammo_coordinates';
+        for (var prop in this[coords_type]) {
             coords = this.coords(prop);
-            friendly = this.ammo_coordinates[prop].friendly;
+            ammo_id = this[coords_type][prop].id;
 
             valid = true;
             if (friendly) {
@@ -242,8 +276,10 @@ Invader.prototype = {
                         this.enemy_life -= 1;
                         this.score += this.points_per_hit;
                         this.playGameSound('enemy_hit');
+                        this.updateEnemyPyramidHealth();
                         this.updateStats();
                     }
+                    this.hideAmmoPyramid(ammo_id);
                 }
             } else {
                 coords.y += 1;
@@ -260,26 +296,29 @@ Invader.prototype = {
                                 this.restartGame();
                             }
                         }
+                        this.updatePyramidHealth();
                     }
+                    this.hideAmmoPyramid(ammo_id);
                 }
 
             }
 
             if (valid) {
                 coordinates[this.xy(coords.x, coords.y)] = {
-                    friendly: friendly
+                    friendly: friendly,
+                    id: ammo_id
                 }
             }
         }
 
-        this.ammo_coordinates = coordinates;
+        this[coords_type] = coordinates;
     },
 
     updateStats: function () {
         var stats = ['score', 'lives', 'kills'], stats_n = 0, item_index = 0, item = stats[item_index], text, $item;
 
         this.$stats_container.innerHTML = '';
-        for (var n = 0; n <= this.columns; n++) {
+        for (var n = 0; n < this.columns; n++) {
             $item = this.createElement('div', 'item');
             if (item != undefined && stats_n >= item.length) {
                 var $colon = this.createElement('div', 'item stats', ':');
@@ -330,7 +369,7 @@ Invader.prototype = {
 
     bindControls: function () {
         var self = this, keys_pressed = {};
-        keys_pressed[this.go_left] = false;
+        keys_pressed[this .go_left] = false;
         keys_pressed[this.go_right] = false;
         keys_pressed[this.fire_ammo] = false;
 
@@ -369,10 +408,16 @@ Invader.prototype = {
         if (keyCode == this.go_left) {
             this.ship_x -= 1;
             this.ship_x = Math.max(this.ship_x, 0);
+            this.movePyramid();
         }
         if (keyCode == this.go_right) {
             this.ship_x += 1;
-            this.ship_x = Math.min(this.ship_x, this.columns - this.ship_width + 1);
+            var ship_max = this.columns - this.ship_width;
+            if (this.current_level == 2) {
+                ship_max -= 1;
+            }
+            this.ship_x = Math.min(this.ship_x, ship_max);
+            this.movePyramid();
         }
         if (keyCode == this.fire_ammo) {
             this.fireAmmo();
@@ -380,33 +425,59 @@ Invader.prototype = {
     },
 
     buildAmmoGrid: function () {
-        var i, n, text, $row, $item, ammo, friendly, class_name;
+        var i, n, text, $row, $item, $arrow, ammo, friendly, class_name;
         this.$ammo_container.innerHTML = '';
 
         for (i = 0; i <= (this.rows); i++) {
             $row = this.createElement('div', 'row ammo-grid clearfix');
-            for (n = 0; n <= this.columns; n++) {
-                ammo = this.ammo_coordinates[this.xy(n, i)];
+            for (n = 0; n < this.columns; n++) {
+                ammo = this.ammo_coordinates[this.xy(n, i)] || this.enemy_ammo_coordinates[this.xy(n, i)];
                 friendly = ammo != null && ammo.friendly == true
                 text = ammo == null ? this.off : (friendly ? this.ship_ammo : this.enemy_ammo);
-                class_name = ammo == null ? 'item' : (friendly ? 'item ammo friendly' : 'item ammo enemy');
+                class_name = ammo == null ? 'item empty-space' : (friendly ? 'item ammo friendly' : 'item ammo enemy');
                 $item = this.createElement('div', class_name, text);
+                if (ammo) {
+                    $arrow = this.createElement('div', 'arrow');
+                    $item.appendChild($arrow);
+                }
                 $row.appendChild($item);
+                if (ammo != null) {
+                    this.moveAmmoPyramid(ammo.id, n, i);
+                }
             }
             this.$ammo_container.appendChild($row);
         }
     },
 
     buildShip: function () {
-        var ship = this.shipAtX(), x, y, $row;
+        var ship = this.shipAtX(), x, y, $row, ship_piece = 0;
         this.$ship_container.innerHTML = '';
 
         for (y = 0; y < ship.length; y++) {
             $row = this.createElement('div', 'row ship-row clearfix');
+            ship_piece = 0;
             for (x = 0; x < ship[0].length; x++) {
                 $item = this.createElement('div', 'item', ship[y][x]);
                 if (ship[y][x] == this.on || ship[y][x] == this.between) {
                     $item.className += ' ship';
+                    var $arrow = this.createElement('div', 'ship-arrow arrow');
+                    $item.appendChild($arrow);
+                    if (ship_piece == 0 && y == 0 && this.current_level == 2) {
+                        var $big_arrow = this.createElement('div', 'big-arrow');
+                        $item.appendChild($big_arrow);
+                    }
+                    if (ship_piece % 2 == 0) {
+                        $item.className += ' even-ship';
+                    } else {
+                        $item.className += ' odd-ship';
+                    }
+
+                    if (ship[y][x] == this.between) {
+                        $item.className += ' missing-piece';
+                    }
+                    ship_piece += 1;
+                } else {
+                    $item.className += ' empty-space';
                 }
 
                 $row.appendChild($item);
@@ -419,7 +490,7 @@ Invader.prototype = {
         var row, text, ship_pieces = 1, ship_array = [], i, n, ship_thickness = 0, first_x = Math.floor(this.ship_width / 2) + this.ship_x;
         for (i = 0; i < this.ship_height; i++) {
             row = []
-            for (n = 0; n <= this.columns; n++) {
+            for (n = 0; n < this.columns; n++) {
                 if (n >= first_x && n <= first_x + ship_thickness) {
                     text = ship_pieces > this.ship_life ? this.between : this.on;
                     row.push(text);
@@ -438,22 +509,46 @@ Invader.prototype = {
     fireAmmo: function () {
         var ammo_x = Math.floor(this.ship_width / 2) + this.ship_x,
             ammo_y = this.rows + 1;
+        this.ammo_id += 1;
+        if (this.current_level >= 3) {
+            this.buildAmmoPyramid(this.ammo_id, true);
+        }
         this.ammo_coordinates[this.xy(ammo_x, ammo_y)] = {
-            friendly: true
+            friendly: true,
+            id: this.ammo_id
         };
         this.playGameSound('player_fire');
     },
 
     buildEnemy: function () {
-        var enemy = this.enemyAtX(), x, y, $row, $item;
+        var enemy = this.enemyAtX(), x, y, $row, $item, $arrow, enemy_piece = 0;
         this.$enemy_container.innerHTML = '';
 
         for (y = 0; y < enemy.length; y++) {
             $row = this.createElement('div', 'row enemy-row clearfix');
+            enemy_piece = 0;
             for (x = 0; x < enemy[0].length; x++) {
                 $item = this.createElement('div', 'item', enemy[y][x]);
                 if (enemy[y][x] == this.on || enemy[y][x] == this.between) {
                     $item.className += ' enemy';
+                    $arrow = this.createElement('div', 'ship-arrow arrow');
+                    $item.appendChild($arrow);
+                    if (enemy_piece == 0 && y == enemy.length - 1) {
+                        var $big_arrow = this.createElement('div', 'big-arrow');
+                        $item.appendChild($big_arrow);
+                    }
+                    if (enemy_piece % 2 == 0) {
+                        $item.className += ' even-enemy';
+                    } else {
+                        $item.className += ' odd-enemy';
+                    }
+
+                    if (enemy[y][x] == this.between) {
+                        $item.className += ' missing-piece';
+                    }
+                    enemy_piece += 1;
+                } else {
+                    $item.className += ' empty-space';
                 }
 
                 $row.appendChild($item);
@@ -467,7 +562,7 @@ Invader.prototype = {
 
         for (i = 0; i < this.enemy_height; i++) {
             row = [];
-            for (n = 0; n < this.columns + 1; n++) {
+            for (n = 0; n < this.columns; n++) {
                 if (n >= first_x && n <= first_x + enemy_thickness - 1) {
                     text = enemy_pieces > this.enemy_life ? this.between : this.on;
                     row.push(text);
@@ -489,8 +584,13 @@ Invader.prototype = {
     fireEnemyAmmo: function () {
         var ammo_x = this.enemy_x + Math.floor(this.enemy_width / 2),
             ammo_y = -1;
-        this.ammo_coordinates[this.xy(ammo_x, ammo_y)] = {
-            friendly: false
+        this.ammo_id += 1;
+        if (this.current_level >= 3) {
+            this.buildAmmoPyramid(this.ammo_id, false);
+        }
+        this.enemy_ammo_coordinates[this.xy(ammo_x, ammo_y)] = {
+            friendly: false,
+            id: this.ammo_id
         };
         this.playGameSound('enemy_fire');
     },
@@ -498,6 +598,7 @@ Invader.prototype = {
     restartEnemy: function () {
         this.playGameSound('enemy_death');
         this.enemy_life = this.enemy_max_life;
+        this.updateEnemyPyramidHealth();
         this.kills += 1;
         if (this.kills == 2) {
             this.changeObserveInterval();
@@ -509,7 +610,85 @@ Invader.prototype = {
             this.next_sound = this.next_sound == this.size(this.sounds) - 1 ? this.size(this.sounds) - 2 : this.size(this.sounds) - 1;
             this.change_sound = true;
         }
-        console.log(491, this.next_sound, this.sound_interval);
+    },
+
+    buildFriendlyPyramid: function() {
+        this.$pyramid_outer = this.createElement('div', 'pyramid-outer');
+        this.appendPyramidContent(this.$pyramid_outer);
+        this.$container.appendChild(this.$pyramid_outer);
+    },
+
+    buildEnemyPyramid: function() {
+        this.$enemy_pyramid_outer = this.createElement('div', 'pyramid-outer enemy-pyramid');
+        this.appendPyramidContent(this.$enemy_pyramid_outer);
+        this.$container.appendChild(this.$enemy_pyramid_outer);
+    },
+
+    buildAmmoPyramid: function(id, friendly) {
+        var class_name = (friendly) ? 'friendly-ammo-pyramid' : 'enemy-ammo-pyramid';
+        var ammo_pyramid_outer = this.createElement('div', 'pyramid-outer ammo-pyramid');
+        ammo_pyramid_outer.id = "ammo-" + id;
+        ammo_pyramid_outer.className += ' ' + class_name;
+        ammo_pyramid_outer.style.display = 'none';
+        this.appendPyramidContent(ammo_pyramid_outer);
+        this.$container.appendChild(ammo_pyramid_outer);
+    },
+
+    moveAmmoPyramid: function(id, x, y) {
+        var $pyramid = document.getElementById('ammo-' + id);
+        if ($pyramid) {
+            $pyramid.style.display = 'block';
+            $pyramid.style.left = (x * 12) + 'px';
+            $pyramid.style.top = (y * 12) + 'px';
+        }
+    },
+
+    hideAmmoPyramid: function(id) {
+        var $pyramid = document.getElementById('ammo-' + id);
+        if ($pyramid) {
+            $pyramid.className += ' hide-forever';
+        }
+    },
+
+    movePyramid: function() {
+        if (this.$pyramid_outer != null) {
+            this.$pyramid_outer.style.left = ((this.ship_x * 12)) + 'px';
+        }
+    },
+
+    moveEnemyPyramid: function() {
+        if (this.$enemy_pyramid_outer != null) {
+            this.$enemy_pyramid_outer.style.left = ((this.enemy_x * 12)) + 'px';
+        }
+    },
+
+    appendPyramidContent: function($parent) {
+        var $pyramid = this.createElement('div', 'pyramid rotates');
+        var $pyramid_inner = this.createElement('div', 'pyramid-inner');
+        var $pyramid_base = this.createElement('div', 'pyramid-base');
+        var $pyramid_face1 = this.createElement('div', 'pyramid-face');
+        var $pyramid_face2 = this.createElement('div', 'pyramid-face');
+        var $pyramid_face3 = this.createElement('div', 'pyramid-face');
+        var $pyramid_face4 = this.createElement('div', 'pyramid-face');
+        $pyramid_inner.appendChild($pyramid_base);
+        $pyramid_inner.appendChild($pyramid_face1);
+        $pyramid_inner.appendChild($pyramid_face2);
+        $pyramid_inner.appendChild($pyramid_face3);
+        $pyramid_inner.appendChild($pyramid_face4);
+        $pyramid.appendChild($pyramid_inner);
+        $parent.appendChild($pyramid);
+    },
+
+    updateEnemyPyramidHealth: function() {
+        if (this.$enemy_pyramid_outer != null) {
+            this.$enemy_pyramid_outer.style.opacity = ((this.enemy_life * (100/this.enemy_max_life )) / 100).toString();
+        }
+    },
+
+    updatePyramidHealth: function() {
+        if (this.$pyramid_outer != null) {
+            this.$pyramid_outer.style.opacity = ((this.ship_life * (100/this.ship_max_life )) / 100).toString();
+        }
     },
 
     changeObserveInterval: function () {
@@ -523,7 +702,7 @@ Invader.prototype = {
 
         return {
             x: parseInt(parts[0], 10),
-            y: parseInt(parts[1], 10)
+            y: parseInt(parts[1], 10),
         }
     },
 

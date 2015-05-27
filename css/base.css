@@ -1,6 +1,6 @@
-.game-container {
-    width: 372px;
-    margin: 20px auto;
+body {
+    background-color: #000;
+    font-family: "Courier New", Courier, monospace;
 }
 
 p {
@@ -8,13 +8,25 @@ p {
     text-align: center;
 }
 
+.game-container {
+    width: 392px;
+    margin: 20px auto;
+    transition: all 4s ease-in-out;
+    position: relative;
+}
+
+.game-container:nth-child(1) {
+    height: 392px;
+}
+
+.stats-container {
+    height: 20px;
+}
+
 .item {
     width: 12px;
     text-align: center;
     float: left;
-}
-
-.item {
     color: #fff;
 }
 
@@ -31,13 +43,577 @@ p {
     color: #fff;
 }
 
+.stats-container {
+}
+
 .enemy {
     color: #ff0000;
 }
 
-body {
-    background-color: #000;
-    font-family: "Courier New", Courier, monospace;
+.level-2 .item {
+    height: 12px;
+}
+
+.level-2 .item.empty-space {
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
+    font-size: 0;
+}
+
+.level-2 .enemy-container {
+    border-top: 1px solid #fff;
+    border-right: 1px solid #fff;
+}
+
+.level-2 .ammo-container {
+    border-right: 1px solid #fff;
+}
+
+.level-2 .ship-container {
+    border-right: 1px solid #fff;
+}
+
+.level-2 .ammo, .level-2 .ship, .level-2 .enemy{
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
+}
+
+.level-2 .ammo.friendly {
+    border-top: 1px solid #fff;
+    border-right: 1px solid #fff;
+    border-bottom: 0;
+    border-left: 0;
+}
+
+.level-2 .ammo {
+    position: relative;
+    font-size: 0;
+}     
+
+.level-2 .friendly.ammo .arrow {
+    z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 14px 14px 0 14px;
+    border-color: #00ff00 transparent transparent transparent;
+}
+
+.level-2 .enemy.ammo .arrow {
+    z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 14px 14px 0 14px;
+    border-color: #ff0000 transparent transparent transparent;
+}
+
+.level-2 .ship, .level-2 .enemy {
+    font-size: 0;
+    position: relative;
+}
+
+.level-2 .ship.even-ship .arrow{
+    z-index: 2;
+    position: absolute;
+    left: 0%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 14px 14px 14px;
+    border-color: transparent transparent #00ff00 transparent;
+}
+.level-2 .ship.even-ship .back-arrow{
+    z-index: 2;
+    position: absolute;
+    left: 0%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 14px 14px 14px;
+    border-color: transparent transparent #00ff00 transparent;
+}
+
+.level-2 .ship.odd-ship .arrow{
+    z-index: 2;
+    position: absolute;
+    left: 0%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 14px 14px 0 14px;
+    border-color: #00ff00 transparent transparent transparent;
+}
+
+.level-2 .enemy.even-enemy .arrow{
+    z-index: 2;
+    position: absolute;
+    left: 0%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 14px 14px 0 14px;
+    border-color: #ff0000 transparent transparent transparent;
+}
+
+.level-2 .enemy.odd-enemy .arrow{
+    z-index: 2;
+    position: absolute;
+    left: 0%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 14px 14px 14px;
+    border-color: transparent transparent #ff0000 transparent;
+}
+
+.level-2 .enemy .big-arrow{
+    z-index: 1;
+    position: absolute;
+    left: -43px;
+    top: -41px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 56px 57px 0 57px;
+    border-color: #ff0000 transparent transparent transparent;
+}
+
+.level-2 .ship .big-arrow{
+    z-index: 1;
+    position: absolute;
+    left: -43px;
+    top: -2px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 57px 56px 57px;
+    border-color: transparent transparent #00ff00 transparent;
+}
+
+.level-2 .missing-piece.ship.even-ship .arrow {
+    border-color: transparent transparent #000 transparent;
+}
+
+.level-2 .missing-piece.ship.odd-ship .arrow {
+    border-color: #000 transparent transparent transparent;
+}
+
+.level-2 .missing-piece.enemy.even-enemy .arrow {
+    border-color: #000 transparent transparent transparent;
+}
+
+.level-2 .missing-piece.enemy.odd-enemy .arrow {
+    border-color: transparent transparent #000 transparent;
+}
+
+.pyramid {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    transform-style: preserve-3d;
+}
+
+.rotates {
+    animation: rotates 6s linear infinite;
+}
+
+
+@keyframes rotates {
+    0% {}
+    100% {transform: rotateY(180deg);	}
+}
+
+.pyramid-outer {
+    transform-style: preserve-3d;
+    position: absolute;
+    left: 0;
+    bottom: 40px;
+}
+
+/* FACES */
+
+.pyramid-base, .pyramid-face {
+    /*opacity: 0.5;*/
+    position: absolute;
+}
+.pyramid-inner {
+    transform-style: preserve-3d;
+}
+
+.pyramid-base {
+    width: 100px;
+    height: 100px;
+    background-color: #00ff00;
+    -webkit-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -moz-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -o-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -ms-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    transform: rotateX(90deg) translate3d(0, 0, -23px);
+}
+
+.pyramid-face {
+    width:0;
+    height:0;
+    border-left:50px solid transparent;
+    border-right:50px solid transparent;
+
+    -webkit-transform-origin: 50% 87%;
+    -moz-transform-origin: 50% 87%;
+    -o-transform-origin: 50% 87%;
+    -ms-transform-origin: 50% 87%;
+    transform-origin: 50% 87%;
+}
+
+.pyramid-face:nth-child(2) {
+    border-bottom:100px solid #00ee00;
+
+    -webkit-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -moz-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -o-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -ms-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    transform: rotateX(30deg) translate3d(0, 0, 50px);
+}
+
+.pyramid-face:nth-child(3) {
+    border-bottom:100px solid #00dd00;
+
+    -webkit-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -moz-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -o-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -ms-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+}
+
+.pyramid-face:nth-child(4) {
+    border-bottom:100px solid #00cc00;
+
+    -webkit-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -moz-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -o-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -ms-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+}
+
+.pyramid-face:nth-child(5) {
+    border-bottom:100px solid #00bb00;
+
+    -webkit-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -moz-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -o-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -ms-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    transform: rotateX(-30deg) translate3d(0, 0, -50px);
+}
+
+.enemy-pyramid {
+    bottom: auto;
+    top: 40px;
+}
+
+.enemy-pyramid .pyramid-base {
+    width: 100px;
+    height: 100px;
+    background-color: #ff0000;
+    -webkit-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -moz-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -o-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -ms-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    transform: rotateX(90deg) translate3d(0, 0, -23px);
+}
+
+
+.enemy-pyramid .pyramid-face:nth-child(2) {
+    border-bottom:100px solid #ee0000;
+
+    -webkit-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -moz-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -o-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -ms-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    transform: rotateX(30deg) translate3d(0, 0, 50px);
+}
+
+
+
+.enemy-pyramid .pyramid-face:nth-child(3) {
+    border-bottom:100px solid #dd0000;
+
+    -webkit-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -moz-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -o-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -ms-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+}
+
+
+
+.enemy-pyramid .pyramid-face:nth-child(4) {
+    border-bottom:100px solid #cc0000;
+
+    -webkit-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -moz-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -o-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -ms-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+}
+
+
+
+.enemy-pyramid .pyramid-face:nth-child(5) {
+    border-bottom:100px solid #bb0000;
+
+    -webkit-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -moz-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -o-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -ms-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    transform: rotateX(-30deg) translate3d(0, 0, -50px);
+}
+
+
+
+.level-3 .item {
+    height: 12px;
+}
+
+.level-3 .item.empty-space {
+    border-bottom: 1px solid transparent;
+    border-left: 1px solid transparent;
+    font-size: 0;
+}
+
+.level-3 .enemy-container {
+    border-top: 1px solid transparent;
+    border-right: 1px solid transparent;
+}
+
+.level-3 .ammo-container {
+    border-right: 1px solid transparent;
+}
+
+.level-3 .ship-container {
+    border-right: 1px solid transparent;
+}
+
+.level-3 .ammo, .level-3 .ship, .level-3 .enemy{
+    border-bottom: 1px solid transparent;
+    border-left: 1px solid transparent;
+}
+
+.level-3 .ammo.friendly {
+    border-top: 1px solid transparent;
+    border-right: 1px solid transparent;
+    border-bottom: 0;
+    border-left: 0;
+}
+
+
+.level-3 .ammo {
+    position: relative;
+    font-size: 0;
+}
+
+.level-3 .friendly.ammo .arrow {
+    z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 14px 14px 0 14px;
+    border-color: #00ff00 transparent transparent transparent;
+}
+
+.level-3 .ship,
+.level-3 .enemy {
+    font-size: 0;
+}
+
+.level-3 .ship .arrow,
+.level-3 .enemy .arrow {
+    display: none;
+}
+
+.level-3 .enemy .big-arrow{
+    display: none;
+}
+
+.level-3 .ship .big-arrow {
+    display: none;
+}
+
+.game-container.level-3 {
+    transform: perspective( 600px ) rotateX( 45deg );
+}
+
+.level-3 .pyramid-outer,
+.level-3 .friendly-ammo-pyramid {
+    transform: rotateX(375deg);
+}
+
+.level-3 .enemy-pyramid,
+.level-3 .enemy-ammo-pyramid {
+    transform: rotateX(245deg);
+}
+
+.level-3 .ammo .arrow {
+    display: none;
+}
+
+.star-container,
+.stars {
+    opacity: 0;
+}
+
+.level-3 .star-container,
+.level-3 .stars {
+    opacity: 1.0;
+}
+
+
+.star-container, .stars {
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.stars {
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+        radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    animation: zoom 5s infinite;
+    opacity: 0;
+}
+
+.stars:nth-child(1) {
+    background-position: 50% 50%;
+    animation-delay: 0s;
+}
+.stars:nth-child(2) {
+    background-position: 20% 60%;
+    animation-delay: 1s;
+}
+.stars:nth-child(3) {
+    background-position: -20% -30%;
+    animation-delay: 2s;
+}
+.stars:nth-child(4) {
+    background-position: 40% -80%;
+    animation-delay: 3s;
+}
+.stars:nth-child(5) {
+    background-position: -20% 30%;
+    animation-delay: 4s;
+}
+
+.friendly-ammo-pyramid {
+    bottom: auto;
+    top: 0px;
+    transform: rotateX(15deg) scale3d(0.1, 0.1, 0.1) translateZ(-2500px) !important;
+}
+
+.enemy-ammo-pyramid {
+    bottom: auto;
+    top: 40px;
+    transform: rotateX(245deg) scale3d(0.1, 0.1, 0.1) translateZ(1000px) !important;
+}
+
+.enemy-ammo-pyramid .pyramid-base {
+    width: 100px;
+    height: 100px;
+    background-color: #ff0000;
+    -webkit-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -moz-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -o-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    -ms-transform: rotateX(90deg) translate3d(0, 0, 0px);
+    transform: rotateX(90deg) translate3d(0, 0, -23px);
+}
+
+
+.enemy-ammo-pyramid .pyramid-face:nth-child(2) {
+    border-bottom:100px solid #ee0000;
+
+    -webkit-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -moz-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -o-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    -ms-transform: rotateX(30deg) translate3d(0, 0, 50px);
+    transform: rotateX(30deg) translate3d(0, 0, 50px);
+}
+
+
+
+.enemy-ammo-pyramid .pyramid-face:nth-child(3) {
+    border-bottom:100px solid #dd0000;
+
+    -webkit-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -moz-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -o-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    -ms-transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+    transform: rotateY(90deg) rotateX(-30deg) translate3d(0, 0, -50px);
+}
+
+
+
+.enemy-ammo-pyramid .pyramid-face:nth-child(4) {
+    border-bottom:100px solid #cc0000;
+
+    -webkit-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -moz-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -o-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    -ms-transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+    transform: rotateY(90deg) rotateX(30deg) translate3d(0, 0, 50px);
+}
+
+
+
+.enemy-ammo-pyramid .pyramid-face:nth-child(5) {
+    border-bottom:100px solid #bb0000;
+
+    -webkit-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -moz-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -o-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    -ms-transform: rotateX(-30deg) translate3d(0, 0, -50px);
+    transform: rotateX(-30deg) translate3d(0, 0, -50px);
+}
+
+@keyframes zoom {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+        animation-timing-function: ease-in;
+    }
+    85% {
+        opacity: 1;
+        transform: scale(2.8);
+        animation-timing-function: linear;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(3.5);
+    }
+}
+
+.hide-forever {
+    display: none !important;
 }
 
 .clearfix:after {

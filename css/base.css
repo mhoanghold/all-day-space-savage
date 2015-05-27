@@ -93,7 +93,7 @@ p {
 .level-2 .friendly.ammo .arrow {
     z-index: 1;
     position: absolute;
-    left: 50%;
+    left: -125%;
     top: 0;
     width: 0;
     height: 0;
@@ -105,7 +105,7 @@ p {
 .level-2 .enemy.ammo .arrow {
     z-index: 1;
     position: absolute;
-    left: 50%;
+    left: -125%;
     top: 0;
     width: 0;
     height: 0;
@@ -227,12 +227,13 @@ p {
 
 .rotates {
     animation: rotates 6s linear infinite;
+    transform: rotateY(0deg);
 }
 
 
 @keyframes rotates {
-    0% {}
-    100% {transform: rotateY(180deg);	}
+    from {transform: rotateY(0deg);}
+    to {transform: rotateY(360deg);	}
 }
 
 .pyramid-outer {
@@ -528,7 +529,7 @@ p {
 .friendly-ammo-pyramid {
     bottom: auto;
     top: 0px;
-    transform: rotateX(15deg) scale3d(0.1, 0.1, 0.1) translateZ(-2500px) !important;
+    transform: rotateX(375deg) scale3d(0.1, 0.1, 0.1) translateZ(-2500px) !important;
 }
 
 .enemy-ammo-pyramid {

@@ -702,7 +702,7 @@ Invader.prototype = {
 
         return {
             x: parseInt(parts[0], 10),
-            y: parseInt(parts[1], 10),
+            y: parseInt(parts[1], 10)
         }
     },
 

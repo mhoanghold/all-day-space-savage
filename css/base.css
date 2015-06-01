@@ -387,32 +387,32 @@ p {
 }
 
 .level-3 .item.empty-space {
-    border-bottom: 1px solid transparent;
-    border-left: 1px solid transparent;
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
     font-size: 0;
 }
 
 .level-3 .enemy-container {
-    border-top: 1px solid transparent;
-    border-right: 1px solid transparent;
+    border-top: 1px solid #fff;
+    border-right: 1px solid #fff;
 }
 
 .level-3 .ammo-container {
-    border-right: 1px solid transparent;
+    border-right: 1px solid #fff;
 }
 
 .level-3 .ship-container {
-    border-right: 1px solid transparent;
+    border-right: 1px solid #fff;
 }
 
 .level-3 .ammo, .level-3 .ship, .level-3 .enemy{
-    border-bottom: 1px solid transparent;
-    border-left: 1px solid transparent;
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
 }
 
 .level-3 .ammo.friendly {
-    border-top: 1px solid transparent;
-    border-right: 1px solid transparent;
+    border-top: 1px solid #fff;
+    border-right: 1px solid #fff;
     border-bottom: 0;
     border-left: 0;
 }
@@ -454,7 +454,7 @@ p {
 }
 
 .game-container.level-3 {
-    transform: perspective( 600px ) rotateX( 45deg );
+    transform: perspective(600px) rotateX( 45deg );
 }
 
 .level-3 .pyramid-outer,
@@ -501,6 +501,7 @@ p {
         radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
     background-repeat: repeat;
     background-size: 200px 200px;
+    transform: rotateX(90deg);
     animation: zoom 5s infinite;
     opacity: 0;
 }
